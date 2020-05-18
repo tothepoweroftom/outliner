@@ -27,10 +27,10 @@ def main(args):
 		pred_mattes = tf.get_collection('mask')[0]
 
 		rgb = imageio.imread(args.rgb)
+		rgb_ = rgb
+
 		if rgb.shape[2]==4:
 			rgb = rgba2rgb(rgb)
-		rgb_ = rgb
-		rgbcopy = rgb.copy()
 
 		origin_shape = rgb.shape[:2]
 		img = np.zeros(rgb.shape,dtype=np.uint8)
@@ -38,11 +38,12 @@ def main(args):
 		rgb = np.expand_dims(misc.imresize(rgb.astype(np.uint8),[320,320,3],interp="nearest").astype(np.float32)-g_mean,0)
 
 		feed_dict = {image_batch:rgb}
+
 		pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
 		final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
-
-		alpha3 = np.stack([final_alpha]*3, axis=2)
-		blended = (1. - alpha3) * rgb_ * -1
+		final_alpha = final_alpha/255
+		mask = final_alpha.reshape(*final_alpha.shape, 1)
+		blended = (mask) * rgb_
 
 
 

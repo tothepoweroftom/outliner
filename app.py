@@ -74,6 +74,8 @@ def main(sess, imagedata):
     pred_mattes = tf.get_collection('mask')[0]
 
     image = Image.open(BytesIO(imagedata))
+    bg = Image.open("./backgrounds/background.png")
+    background = np.array(bg)
     rgb = np.array(image)
     rgb_ = rgb
 
@@ -91,8 +93,9 @@ def main(sess, imagedata):
     final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
     final_alpha = final_alpha/255
     mask = final_alpha.reshape(*final_alpha.shape, 1)
-
-    blended = (mask) * rgb_
+    background = misc.imresize(background, origin_shape)
+    blended = (mask) * rgb_ + (1. - mask)*background
+    output = background*0.5 + blended*0.5
     im = Image.fromarray(blended.astype("uint8"))
 
     buf = io.BytesIO()

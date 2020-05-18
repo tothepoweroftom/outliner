@@ -1,9 +1,24 @@
 # Fabricating Alternatives - Outliner API
 
-This is an app for generating a masked cutout of the most salient object in a image. Build on the work of 
+This is an app for generating a masked cutout of the most salient object in a image. Build on the work of [Ge Zheng](https://github.com/Joker316701882/Salient-Object-Detection)
+
+The API was build to take a DataURL base64 string as a post request and returns the masked image in the same format. 
+
+The code can easily be shipped to Google Cloud Run or other Docker container service.
 
 ## Demo
+![Input](test_output/plant.jpeg)
 
+![Result](test_output/alpha.png)
+
+
+
+
+## Setup Project
+<h3> Download Pretrained Model </h3>
+https://drive.google.com/open?id=0B6l9O8aWij8fUGtVNldUTXA4eHc
+
+1. Download pretrained model and put them under folder "salience_model" ,(need to create folder yourself)<br />
 
 
 ## How to Build the Container And Start Cloud Run

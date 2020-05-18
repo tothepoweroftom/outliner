@@ -5,6 +5,7 @@ RUN apt-get -y update && apt-get -y install gcc
 WORKDIR /
 COPY salience_model /salience_model
 COPY meta_graph /meta_graph
+COPY backgrounds /backgrounds
 
 # Make changes to the requirements/app here.
 # This Dockerfile order allows Docker to cache the checkpoint layer
