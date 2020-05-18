@@ -1,6 +1,7 @@
 # Fabricating Alternatives - Outliner API
 
-This is an app for generating a masked cutout of the most salient object in a image. Build on the work of [Ge Zheng](https://github.com/Joker316701882/Salient-Object-Detection)
+This is an app for generating a masked cutout of the most salient object in a image. Building upon the work of [Ge Zheng](https://github.com/Joker316701882/Salient-Object-Detection)
+
 
 The API was build to take a DataURL base64 string as a post request and returns the masked image in the same format. 
 
