@@ -50,7 +50,6 @@ Once done, deploy the uploaded image to Cloud Run via [the console](https://cons
 
 The Cloud Run logs will tell you how the service runs, and the `INFO` log level contains Cloud Run diagnostic info, including the time it takes for a request to run.
 
-![logs](docs/logs.png)
 
 ## Interacting with the API in Cloud Run
 
