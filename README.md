@@ -56,10 +56,4 @@ The Cloud Run logs will tell you how the service runs, and the `INFO` log level 
 
 Make a POST request to your given url with your base64 image string passed as a param 'img'
 
-## License
 
-MIT
-
-## Disclaimer
-
-This repo has no affiliation or relationship with OpenAI.
