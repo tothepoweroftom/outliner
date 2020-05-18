@@ -7,9 +7,9 @@ The API was build to take a DataURL base64 string as a post request and returns 
 The code can easily be shipped to Google Cloud Run or other Docker container service.
 
 ## Demo
-![Input](test_output/plant.jpeg)
 
-![Result](test_output/alpha.png)
+|![input](test_output/plant.jpeg "title-1")| ![output](test_output/alpha.png "title-2")|
+
 
 
 
