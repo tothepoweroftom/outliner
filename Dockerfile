@@ -9,7 +9,7 @@ COPY meta_graph /meta_graph
 # Make changes to the requirements/app here.
 # This Dockerfile order allows Docker to cache the checkpoint layer
 # and improve build times if making changes.
-RUN pip3 --no-cache-dir install tensorflow==1.15.2 starlette python-multipart uvicorn ujson scipy pillow scikit-image
+RUN pip3 --no-cache-dir install tensorflow==1.15.2 starlette python-multipart uvicorn ujson scipy==1.2.1 pillow scikit-image
 COPY app.py /
 
 # Clean up APT when done.

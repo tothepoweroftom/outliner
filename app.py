@@ -16,9 +16,7 @@ import numpy as np
 import imageio
 from scipy import misc
 import skimage
-import cv2
 
-import requests
 
 
 g_mean = np.array(([126.88,120.24,112.19])).reshape([1,1,3])
@@ -92,25 +90,16 @@ def main(sess, imagedata):
     pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
     final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
     final_alpha = final_alpha/255
-    # alpha3 = np.stack([final_alpha]*3, axis=2)
     mask = final_alpha.reshape(*final_alpha.shape, 1)
 
     blended = (mask) * rgb_
+    im = Image.fromarray(blended.astype("uint8"))
 
+    buf = io.BytesIO()
+    im.save(buf, format='PNG')
+    byte_im = buf.getvalue()
+    im_b64 = base64.b64encode(byte_im)
 
-    imageio.imsave(os.path.join('./test','alpha.png'),blended)
-    _, im_arr = cv2.imencode('.png', blended)  # im_arr: image in Numpy one-dim array format.
-    im_bytes = im_arr.tobytes()
-    im_b64 = base64.b64encode(im_bytes)
-    # url = "https://api.imgbb.com/1/upload"
-    # payload = {
-    #     "key": 'd2be788bd7cde38e2a8ca07a9abf49c7',
-    #     "image":im_b64,
-    # }
-
-
-    # res = requests.post(url, payload)
-    # print(res)
     
     return im_b64
 
@@ -118,7 +107,7 @@ def main(sess, imagedata):
 async def homepage(request):
 
 
-    # global generate_count
+    global generate_count
     global sess
 
     params = await request.json()
@@ -127,7 +116,7 @@ async def homepage(request):
     base64Data = base64.b64decode(image_data)
     output = main(sess, base64Data)
     
-
+    gc.collect()
     return UJSONResponse({'image': output},
                             headers=response_header)
 
