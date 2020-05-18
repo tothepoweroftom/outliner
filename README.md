@@ -8,9 +8,10 @@ The code can easily be shipped to Google Cloud Run or other Docker container ser
 
 ## Demo
 
-|![input](test_output/plant.jpeg "title-1")| ![output](test_output/alpha.png "title-2")|
 
-
+| [![VideoBlocks](test_output/plant.jpeg )](http://videoblocks.com)  | [![AudioBlocks](test_output/alpha.png)](http://audioblocks.com) |  |
+|:---:|:---:|:---:|
+|||  |
 
 
 
