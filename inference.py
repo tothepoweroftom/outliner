@@ -7,6 +7,7 @@ from scipy import misc
 
 import argparse
 import sys
+from PIL import ImageOps
 
 g_mean = np.array(([126.88,120.24,112.19])).reshape([1,1,3])
 output_folder = "./test_output"
@@ -18,7 +19,6 @@ def main(args):
 	
 	if not os.path.exists(output_folder):
 		os.mkdir(output_folder)	
-	
 	gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction = args.gpu_fraction)
 	with tf.Session(config=tf.ConfigProto(gpu_options = gpu_options)) as sess:
 		saver = tf.train.import_meta_graph('./meta_graph/my-model.meta')
@@ -26,31 +26,27 @@ def main(args):
 		image_batch = tf.get_collection('image_batch')[0]
 		pred_mattes = tf.get_collection('mask')[0]
 
-		if args.rgb_folder:
-			rgb_pths = os.listdir(args.rgb_folder)
-			for rgb_pth in rgb_pths:
-				rgb = imageio.imread(os.path.join(args.rgb_folder,rgb_pth))
-				if rgb.shape[2]==4:
-					rgb = rgba2rgb(rgb)
-				origin_shape = rgb.shape
-				rgb = np.expand_dims(misc.imresize(rgb.astype(np.uint8),[320,320,3],interp="nearest").astype(np.float32)-g_mean,0)
+		rgb = imageio.imread(args.rgb)
+		if rgb.shape[2]==4:
+			rgb = rgba2rgb(rgb)
+		rgb_ = rgb
+		rgbcopy = rgb.copy()
 
-				feed_dict = {image_batch:rgb}
-				pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
-				final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
-				imageio.imsave(os.path.join(output_folder,rgb_pth),final_alpha)
+		origin_shape = rgb.shape[:2]
+		img = np.zeros(rgb.shape,dtype=np.uint8)
+		img.fill(255) # or img[:] = 255
+		rgb = np.expand_dims(misc.imresize(rgb.astype(np.uint8),[320,320,3],interp="nearest").astype(np.float32)-g_mean,0)
 
-		else:
-			rgb = imageio.imread(args.rgb)
-			if rgb.shape[2]==4:
-				rgb = rgba2rgb(rgb)
-			origin_shape = rgb.shape[:2]
-			rgb = np.expand_dims(misc.imresize(rgb.astype(np.uint8),[320,320,3],interp="nearest").astype(np.float32)-g_mean,0)
+		feed_dict = {image_batch:rgb}
+		pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
+		final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
 
-			feed_dict = {image_batch:rgb}
-			pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
-			final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
-			imageio.imsave(os.path.join(output_folder,'alpha.png'),final_alpha)
+		alpha3 = np.stack([final_alpha]*3, axis=2)
+		blended = (1. - alpha3) * rgb_ * -1
+
+
+
+		imageio.imsave(os.path.join(output_folder,'alpha.png'),blended)
 
 def parse_arguments(argv):
 	parser = argparse.ArgumentParser()

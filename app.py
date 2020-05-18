@@ -2,23 +2,27 @@ from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import UJSONResponse
-# import gpt_2_simple as gpt2
-# import tensorflow as tf
 import uvicorn
 import os
 import gc
 import json
-
 import re
 import io
-import os
 import base64
 from io import BytesIO
-from PIL import Image
-# Imports the Google Cloud client library
-from google.cloud import vision
-from google.cloud.vision import types
-client = vision.ImageAnnotatorClient()
+from PIL import Image, ImageOps
+import tensorflow as tf
+import numpy as np
+import imageio
+from scipy import misc
+import skimage
+import cv2
+
+import requests
+
+
+g_mean = np.array(([126.88,120.24,112.19])).reshape([1,1,3])
+
 
 middleware = [
     Middleware(CORSMiddleware,    
@@ -35,67 +39,96 @@ response_header = {
     'Access-Control-Allow-Origin': '*'
 }
 
+g_mean = np.array(([126.88,120.24,112.19])).reshape([1,1,3])
+
+def loadCheckpoint(sess):
+    saver = tf.train.import_meta_graph('./meta_graph/my-model.meta')
+    saver.restore(sess,tf.train.latest_checkpoint('./salience_model'))
 
 
-generate_count = 0
+def rgba2rgb(img):
+	return img[:,:,:3]*np.expand_dims(img[:,:,3],2)
 
-def getLabels(content):
-    image = types.Image(content=content)
-    metadata = {}
-    objectlabels = []
-        # Performs label detection on the image file
-    response = client.label_detection(image)
-    labels = response.label_annotations
-    print('Labels:')
-    textlabels = []
-    for label in labels:
-        print(label.description)
-        textlabels.append(label.description)
-
-    if response.error.message:
-        raise Exception(
-            '{}\nFor more info on error messages, check: '
-            'https://cloud.google.com/apis/design/errors'.format(
-                response.error.message))
+sess = tf.Session(config=tf.ConfigProto())
+loadCheckpoint(sess)
 
 
-    objects = client.object_localization(
-        image=image).localized_object_annotations
 
-    print('Number of objects found: {}'.format(len(objects)))
-    for object_ in objects:
-        obj = {}
-        obj["name"] = object_.name
-        obj["score"] = object_.score
-        print('\n{} (confidence: {})'.format(object_.name, object_.score))
-        print('Normalized bounding polygon vertices: ')
-        obj["vertices"] = []
-        for vertex in object_.bounding_poly.normalized_vertices:
-            obj["vertices"].append({'x': str(vertex.x), 'y': str(vertex.y)})
-        objectlabels.append(obj)
 
-    metadata["labels"] = textlabels
-    metadata["objects"] = objectlabels
-    return metadata
 
+def encode(image) -> str:
+
+    # # convert image to bytes
+    # with BytesIO() as output_bytes:
+    #     PIL_image = Image.fromarray(skimage.img_as_ubyte(image))
+    #     PIL_image.save(output_bytes, 'JPEG') # Note JPG is not a vaild type here
+    #     bytes_data = output_bytes.getvalue()
+
+    # encode bytes to base64 string
+    base64_str = str(base64.b64encode(image))
+
+    return base64_str
+
+
+def main(sess, imagedata):
+	
+    image_batch = tf.get_collection('image_batch')[0]
+    pred_mattes = tf.get_collection('mask')[0]
+
+    image = Image.open(BytesIO(imagedata))
+    rgb = np.array(image)
+    rgb_ = rgb
+
+    if rgb.shape[2]==4:
+        rgb = rgba2rgb(rgb)
+    rgbcopy = rgb.copy()
+
+    origin_shape = rgb.shape[:2]
+    img = np.zeros(rgb.shape,dtype=np.uint8)
+    img.fill(255) # or img[:] = 255
+    rgb = np.expand_dims(misc.imresize(rgb.astype(np.uint8),[320,320,3],interp="nearest").astype(np.float32)-g_mean,0)
+
+    feed_dict = {image_batch:rgb}
+    pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
+    final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
+    final_alpha = final_alpha/255
+    # alpha3 = np.stack([final_alpha]*3, axis=2)
+    mask = final_alpha.reshape(*final_alpha.shape, 1)
+
+    blended = (mask) * rgb_
+
+
+    imageio.imsave(os.path.join('./test','alpha.png'),blended)
+    _, im_arr = cv2.imencode('.png', blended)  # im_arr: image in Numpy one-dim array format.
+    im_bytes = im_arr.tobytes()
+    im_b64 = base64.b64encode(im_bytes)
+    # url = "https://api.imgbb.com/1/upload"
+    # payload = {
+    #     "key": 'd2be788bd7cde38e2a8ca07a9abf49c7',
+    #     "image":im_b64,
+    # }
+
+
+    # res = requests.post(url, payload)
+    # print(res)
+    
+    return im_b64
 
 @app.route('/', methods=['GET', 'POST', 'HEAD'])
 async def homepage(request):
 
 
     # global generate_count
-    # global sess
+    global sess
 
     params = await request.json()
     imageBase64 = params.get('img')
     image_data = re.sub('^data:image/.+;base64,', '',imageBase64)
     base64Data = base64.b64decode(image_data)
-    # im = Image.open()
-    labels = getLabels(base64Data)
-    output = json.dumps(labels)
-    # print(imageBase64)
+    output = main(sess, base64Data)
+    
 
-    return UJSONResponse({'labels': output},
+    return UJSONResponse({'image': output},
                             headers=response_header)
 
 
