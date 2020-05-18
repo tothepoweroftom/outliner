@@ -38,7 +38,6 @@ If you want to test the image locally with the same specs as Cloud Run, you can 
 docker run -p 8080:8080 --memory="2g" --cpus="1" outliner
 ```
 
-You can then visit/`curl` http://0.0.0.0:8080 to get generated text!
 
 Then, tag the image and upload it to the Google [Container Registry](https://console.cloud.google.com/kubernetes/images/list) (note, this will take awhile due to the image size!):
 
@@ -54,6 +53,8 @@ The Cloud Run logs will tell you how the service runs, and the `INFO` log level 
 ![logs](docs/logs.png)
 
 ## Interacting with the API in Cloud Run
+
+Make a POST request to your given url with your base64 image string passed as a param 'img'
 
 ## License
 
