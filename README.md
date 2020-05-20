@@ -1,16 +1,18 @@
 # Fabricating Alternatives - Outliner API
 
-This is an app for generating a masked cutout of the most salient object in a image. Build on the work of [Ge Zheng](https://github.com/Joker316701882/Salient-Object-Detection)
+This is an app for generating a masked cutout of the most salient object in a image. Building upon the work of [Ge Zheng](https://github.com/Joker316701882/Salient-Object-Detection)
+
 
 The API was build to take a DataURL base64 string as a post request and returns the masked image in the same format. 
 
 The code can easily be shipped to Google Cloud Run or other Docker container service.
 
 ## Demo
-![Input](test_output/plant.jpeg)
 
-![Result](test_output/alpha.png)
 
+| [![VideoBlocks](test_output/plant.jpeg )](http://videoblocks.com)  | [![AudioBlocks](test_output/alpha.png)](http://audioblocks.com) |  |
+|:---:|:---:|:---:|
+|||  |
 
 
 
@@ -37,7 +39,6 @@ If you want to test the image locally with the same specs as Cloud Run, you can 
 docker run -p 8080:8080 --memory="2g" --cpus="1" outliner
 ```
 
-You can then visit/`curl` http://0.0.0.0:8080 to get generated text!
 
 Then, tag the image and upload it to the Google [Container Registry](https://console.cloud.google.com/kubernetes/images/list) (note, this will take awhile due to the image size!):
 
@@ -50,14 +51,9 @@ Once done, deploy the uploaded image to Cloud Run via [the console](https://cons
 
 The Cloud Run logs will tell you how the service runs, and the `INFO` log level contains Cloud Run diagnostic info, including the time it takes for a request to run.
 
-![logs](docs/logs.png)
 
 ## Interacting with the API in Cloud Run
 
-## License
+Make a POST request to your given url with your base64 image string passed as a param 'img'
 
-MIT
 
-## Disclaimer
-
-This repo has no affiliation or relationship with OpenAI.
