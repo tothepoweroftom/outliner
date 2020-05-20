@@ -96,14 +96,14 @@ def oldMethod(image):
 def simple_threshold(im, threshold=128):
     return ((im > threshold) * 255).astype("uint8")
 
-def main(sess, imagedata):
+def main(sess, imagedata, color):
 	
     image_batch = tf.get_collection('image_batch')[0]
     pred_mattes = tf.get_collection('mask')[0]
 
     image = Image.open(BytesIO(imagedata))
-    num = random.randint(1,12)
-    bg = Image.open("./backgrounds/shape-"+str(num)+".png")
+    num = random.randint(1,4)
+    bg = Image.open("./backgrounds/"+color+str(num)+".png")
     background = np.array(bg)
     rgb = np.array(image)
 
@@ -161,9 +161,10 @@ async def homepage(request):
 
     params = await request.json()
     imageBase64 = params.get('img')
+    color = params.get('color', 'r')
     image_data = re.sub('^data:image/.+;base64,', '',imageBase64)
     base64Data = base64.b64decode(image_data)
-    output = main(sess, base64Data)
+    output = main(sess, base64Data, color)
     
     gc.collect()
     return UJSONResponse({'image': output},
