@@ -125,7 +125,7 @@ def main(sess, imagedata):
     feed_dict = {image_batch:rgb}
     pred_alpha = sess.run(pred_mattes,feed_dict = feed_dict)
     final_alpha = misc.imresize(np.squeeze(pred_alpha),origin_shape)
-    final_alpha = simple_threshold(final_alpha, threshold=150)
+    # final_alpha = simple_threshold(final_alpha, threshold=150)
 
     final_alpha = final_alpha/255
     mask = final_alpha.reshape(*final_alpha.shape, 1)
