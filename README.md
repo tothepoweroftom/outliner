@@ -10,7 +10,7 @@ The code can easily be shipped to Google Cloud Run or other Docker container ser
 ## Demo
 
 
-| [![VideoBlocks](test_output/plant.jpeg )](http://videoblocks.com)  | [![AudioBlocks](test_output/alpha.png)](http://audioblocks.com) |  |
+| [![VideoBlocks](test_output/plant.jpeg )](http://videoblocks.com)  | [![AudioBlocks](test_output/alphaa.png)](http://audioblocks.com) |  |
 |:---:|:---:|:---:|
 |||  |
 
